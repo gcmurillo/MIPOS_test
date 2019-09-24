@@ -1,30 +1,14 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Aperture from './components/aperture'
 
 class App extends Component {
 
-  constructor(props) {
-    super(props);
-  }
-
   render () {
-    console.log(localStorage.getItem('auth_token'));
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+          <Aperture value_previous_close={22}></Aperture>
         </header>
       </div>
     );
