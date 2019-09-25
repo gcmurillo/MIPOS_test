@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {connect} from 'react-redux';
-import { getOpen, changeData, submitOpen, requestCajaData } from '../actions/cajaActions';
+import { getOpen, changeData, requestCajaData, postCajaOpen } from '../actions/cajaActions';
 import { TextInput, Textarea, Button, Icon } from 'react-materialize'
 
 class Caja extends Component {
@@ -20,21 +20,41 @@ class Caja extends Component {
     }
     
     handleSubmit(event) {
-        console.log('submit');
-        //console.log(this.props);
-        this.props.submitOpenCaja();
-        console.log(this.props);
+        const data_post = {
+            date_open: this.props.data.date_open,
+            hour_open: this.props.data.hour_open,
+            value_previous_close: this.props.data.value_previous_close,
+            value_open: this.props.data.value_open * 100,
+            observation: this.props.data.observation
+        }
+        this.props.submitOpenCaja(data_post);
         event.preventDefault();
     }
     
     handleClick = () => {
         this.props.requestOpenCaja();
-        // this.props.getOpenCaja();
+    }
+
+    valid_open_value = () => {
+        return this.props.data.value_open <= 0
     }
     
     formApertura () {
+
+        let submitButton
+        if (!this.props.aperture_block) {
+            submitButton = (
+                <Button type="submit" waves="light" disabled={this.valid_open_value()}>
+                    Enviar
+                    <Icon right>
+                    send
+                    </Icon>
+                </Button>
+            )
+        }
         return (
             <div className="row left">
+                <h3>Apertura</h3>
                 <form onSubmit={this.handleSubmit} className="col s12">
                     <div className="row">
                         <div className="input-field col s6">
@@ -46,7 +66,7 @@ class Caja extends Component {
                     </div>
                     <div className="row">
                         <div className="input-field col s6">
-                            <TextInput label="Total Anterior" disabled value={this.props.data.value_previous_close ? String(this.props.data.value_previous_close) : null} type="number">
+                            <TextInput label="Total Anterior" disabled value={this.props.data.value_previous_close ? String(this.props.data.value_previous_close / 100) : null} type="number">
                             </TextInput>
                         </div>
                         <div className="input-field col s6">
@@ -56,16 +76,10 @@ class Caja extends Component {
                         </div>
                     </div>
                     <div className="row">
-                        <div className="input-field">
-                            <Textarea label="Observaciones" value={this.props.data.observation} name="observation" onChange={this.handleChange} disabled={this.props.aperture_block}/>
-                        </div>
+                        <Textarea label="Observaciones" value={this.props.data.observation} name="observation" onChange={this.handleChange} 
+                        disabled={this.props.aperture_block}/>
                     </div>
-                    <Button type="submit" waves="light">
-                        Submit
-                        <Icon right>
-                        send
-                        </Icon>
-                    </Button>
+                    {submitButton}
                 </form>
             </div>
         );
@@ -74,9 +88,11 @@ class Caja extends Component {
 
     render() {
         
-        console.log(this.props);
+        let get_error;
+        if (this.props.get_open_error) {
+            get_error = <h4>Error al consultar API</h4>
+        }
         if (this.props.data === null) {
-
             if (this.props.getting_open) {
                 return (
                     <h2>Getting data...</h2>
@@ -85,11 +101,17 @@ class Caja extends Component {
             return (
                 <div className="container">
                     <h1>Caja mipOS</h1>
-                    <button className="btn waves-effect waves-light" onClick={this.handleClick}>Abrir Caja</button>                    
+                    <button className="btn waves-effect waves-light" onClick={this.handleClick}>Abrir Caja</button>
+                    {get_error}                    
                 </div>
             );
         } 
-        return this.formApertura();
+        return (
+            <div>
+                {this.formApertura()}
+                <p>Aca el otro</p>
+            </div>
+        );
     }
 }
 
@@ -98,14 +120,15 @@ const mapStateToProps = (state) => {
         data: state.data,
         aperture_block: state.aperture_block,
         close_block: state.close_block,
-        getting_open: state.getting_open
+        getting_open: state.getting_open,
+        get_open_error: state.get_open_error
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         getOpenCaja: () => { dispatch(getOpen())},
-        submitOpenCaja: () => { dispatch(submitOpen())},
+        submitOpenCaja: (data) => { dispatch(postCajaOpen(data))},
         changeData: (key, value, type_input) => { dispatch(changeData(key,value,type_input))},
         requestOpenCaja: () => { dispatch(requestCajaData())}
     }
